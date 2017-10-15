@@ -219,7 +219,7 @@ endforeach (file)
 ##############
 
 install (TARGETS planetblupi
-  RUNTIME DESTINATION bin
+  RUNTIME DESTINATION games
 )
 
 install (

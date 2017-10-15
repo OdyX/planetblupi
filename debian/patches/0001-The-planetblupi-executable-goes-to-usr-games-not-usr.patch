@@ -1,0 +1,22 @@
+From aa6cb7114d1f2f7af95a0567817aa3e593ba13dc Mon Sep 17 00:00:00 2001
+From: Didier Raboud <odyx@debian.org>
+Date: Sun, 15 Oct 2017 17:46:30 +0200
+Subject: The planetblupi executable goes to /usr/games, not /usr/bin
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1a0a456..66e8f7d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -219,7 +219,7 @@ endforeach (file)
+ ##############
+ 
+ install (TARGETS planetblupi
+-  RUNTIME DESTINATION bin
++  RUNTIME DESTINATION games
+ )
+ 
+ install (
