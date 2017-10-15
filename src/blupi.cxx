@@ -59,6 +59,7 @@ CDecor *      g_pDecor       = nullptr;
 std::thread * g_updateThread = nullptr;
 
 bool        g_bFullScreen    = false; // false si mode de test
+Uint8       g_windowScale    = 1;
 Sint32      g_speedRate      = 1;
 Sint32      g_timerInterval  = 50; // inverval = 50ms
 int         g_rendererType   = 0;
@@ -71,6 +72,7 @@ enum Settings {
   SETTING_SPEEDRATE     = 1 << 1,
   SETTING_TIMERINTERVAL = 1 << 2,
   SETTING_RENDERER      = 1 << 3,
+  SETTING_ZOOM          = 1 << 4,
 };
 
 static int g_settingsOverload = 0;
@@ -92,7 +94,7 @@ split (const std::string & s, char delim, Out result)
   std::stringstream ss;
   ss.str (s);
   std::string item;
-  while (std::getline (ss, item, delim).good ())
+  while (std::getline (ss, item, delim))
     *(result++) = item;
 }
 
@@ -114,7 +116,10 @@ ReadConfig ()
 {
   const auto config = GetBaseDir () + "data/config.json";
 
-  std::ifstream  file (config, std::ifstream::in);
+  std::ifstream file (config, std::ifstream::in);
+  if (!file)
+    return false;
+
   nlohmann::json j;
   file >> j;
 
@@ -147,6 +152,13 @@ ReadConfig ()
     g_bFullScreen = j["fullscreen"].get<bool> ();
     if (g_bFullScreen != 0)
       g_bFullScreen = 1;
+  }
+
+  if (!(g_settingsOverload & SETTING_ZOOM) && j.find ("zoom") != j.end ())
+  {
+    g_windowScale = j["zoom"].get<Uint8> ();
+    if (g_windowScale != 1 && g_windowScale != 2)
+      g_windowScale = 1;
   }
 
   if (
@@ -523,6 +535,10 @@ parseArgs (int argc, char * argv[], bool & exit)
       {"-f", "--fullscreen"},
       "load in fullscreen [on;off] (default: on)",
       1},
+     {"zoom",
+      {"-z", "--zoom"},
+      "change the window scale (only if fullscreen is off) [1;2] (default: 1)",
+      1},
      {"renderer",
       {"-r", "--renderer"},
       "set a renderer [auto;software;accelerated] (default: auto)",
@@ -584,6 +600,12 @@ parseArgs (int argc, char * argv[], bool & exit)
     g_settingsOverload |= SETTING_FULLSCREEN;
   }
 
+  if (args["zoom"])
+  {
+    g_windowScale = args["zoom"];
+    g_settingsOverload |= SETTING_ZOOM;
+  }
+
   if (args["renderer"])
   {
     if (args["renderer"].as<std::string> () == "auto")
@@ -622,19 +644,20 @@ DoInit (int argc, char * argv[], bool & exit)
 
   bOK = ReadConfig (); // lit le fichier config.json
 
+  if (!bOK) // Something wrong with config.json file?
+  {
+    InitFail ("Game not correctly installed");
+    return EXIT_FAILURE;
+  }
+
   auto res = SDL_Init (SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
   if (res < 0)
     return EXIT_FAILURE;
 
   // Create a window.
-  if (g_bFullScreen)
-    g_window = SDL_CreateWindow (
-      gettext ("Planet Blupi"), 0, 0, LXIMAGE, LYIMAGE,
-      SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_INPUT_GRABBED);
-  else
-    g_window = SDL_CreateWindow (
-      gettext ("Planet Blupi"), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-      LXIMAGE, LYIMAGE, 0);
+  g_window = SDL_CreateWindow (
+    gettext ("Planet Blupi"), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    LXIMAGE, LYIMAGE, 0);
 
   if (!g_window)
   {
@@ -654,12 +677,6 @@ DoInit (int argc, char * argv[], bool & exit)
   {
     printf ("%s", SDL_GetError ());
     SDL_DestroyWindow (g_window);
-    return EXIT_FAILURE;
-  }
-
-  if (!bOK) // Something wrong with config.json file?
-  {
-    InitFail ("Game not correctly installed");
     return EXIT_FAILURE;
   }
 
@@ -830,7 +847,7 @@ DoInit (int argc, char * argv[], bool & exit)
   }
 
   totalDim.x = DIMTEXTX * 16;
-  totalDim.y = DIMTEXTY * 8 * 3;
+  totalDim.y = DIMTEXTY * 9 * 3;
   iconDim.x  = DIMTEXTX;
   iconDim.y  = DIMTEXTY;
   if (!g_pPixmap->Cache (CHTEXT, "image/text.png", totalDim, iconDim))
@@ -840,7 +857,7 @@ DoInit (int argc, char * argv[], bool & exit)
   }
 
   totalDim.x = DIMLITTLEX * 16;
-  totalDim.y = DIMLITTLEY * 8;
+  totalDim.y = DIMLITTLEY * 9;
   iconDim.x  = DIMLITTLEX;
   iconDim.y  = DIMLITTLEY;
   if (!g_pPixmap->Cache (CHLITTLE, "image/little.png", totalDim, iconDim))
@@ -907,6 +924,8 @@ DoInit (int argc, char * argv[], bool & exit)
   g_pEvent->Create (g_pPixmap, g_pDecor, g_pSound, g_pMovie);
   g_updateThread = new std::thread (CheckForUpdates);
   g_pEvent->SetFullScreen (g_bFullScreen);
+  if (!g_bFullScreen)
+    g_pEvent->SetWindowSize (g_windowScale);
   g_pEvent->ChangePhase (EV_PHASE_INTRO1);
 
   g_bTermInit = true;

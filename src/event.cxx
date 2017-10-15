@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <ctime>
+#include <set>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unordered_map>
@@ -1258,62 +1259,68 @@ static Phase table[] =
             {
                 EV_BUTTON1,
                 0, {1, 40},
-                170 + 42 * 0, 30 + 42 * 0,
+                170 + 42 * 1, 30 + 42 * 0,
                 { translate ("No music") },
             },
             {
                 EV_BUTTON2,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 1,
+                170 + 42 * 0, 30 + 42 * 0,
                 { translate ("Music number 1") },
             },
             {
                 EV_BUTTON3,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 2,
+                170 + 42 * 0, 30 + 42 * 1,
                 { translate ("Music number 2") },
             },
             {
                 EV_BUTTON4,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 3,
+                170 + 42 * 0, 30 + 42 * 2,
                 { translate ("Music number 3") },
             },
             {
                 EV_BUTTON5,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 4,
+                170 + 42 * 0, 30 + 42 * 3,
                 { translate ("Music number 4") },
             },
             {
                 EV_BUTTON6,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 5,
+                170 + 42 * 0, 30 + 42 * 4,
                 { translate ("Music number 5") },
             },
             {
                 EV_BUTTON7,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 6,
+                170 + 42 * 0, 30 + 42 * 5,
                 { translate ("Music number 6") },
             },
             {
                 EV_BUTTON8,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 7,
+                170 + 42 * 0, 30 + 42 * 6,
                 { translate ("Music number 7") },
             },
             {
                 EV_BUTTON9,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 8,
+                170 + 42 * 0, 30 + 42 * 7,
                 { translate ("Music number 8") },
             },
             {
                 EV_BUTTON10,
                 0, {1, 44},
-                170 + 42 * 0, 30 + 42 * 9,
+                170 + 42 * 0, 30 + 42 * 8,
                 { translate ("Music number 9") },
+            },
+            {
+                EV_BUTTON11,
+                0, {1, 44},
+                170 + 42 * 0, 30 + 42 * 9,
+                { translate ("Music number 10") },
             },
             {
                 EV_PHASE_BUILD,
@@ -1518,7 +1525,7 @@ CEvent::CEvent ()
 {
   Sint32 i;
 
-  m_bFullScreen     = g_bFullScreen;
+  m_bFullScreen     = false;
   m_WindowScale     = 1;
   m_exercice        = 0;
   m_mission         = 0;
@@ -1587,6 +1594,7 @@ CEvent::CEvent ()
   m_Languages.push_back (Language::en_US);
   m_Languages.push_back (Language::fr);
   m_Languages.push_back (Language::de);
+  m_Languages.push_back (Language::it);
 
   this->m_LangStart = GetLocale ();
 
@@ -1596,6 +1604,8 @@ CEvent::CEvent ()
     m_Lang = m_Languages.begin () + 2;
   else if (this->m_LangStart == "de")
     m_Lang = m_Languages.begin () + 3;
+  else if (this->m_LangStart == "it")
+    m_Lang = m_Languages.begin () + 4;
   else
     m_Lang = m_Languages.begin ();
 
@@ -1658,6 +1668,33 @@ CEvent::SetFullScreen (bool bFullScreen)
   coord->x   = x;
   coord->y   = y;
   CEvent::PushUserEvent (EV_WARPMOUSE, coord);
+}
+
+/**
+ * \brief Change the size of the window.
+ *
+ * We use an integer scale to be sure that the pixels are always well formed.
+ *
+ * \param[in] newScale - The new scale.
+ */
+void
+CEvent::SetWindowSize (Uint8 newScale)
+{
+  if (newScale == m_WindowScale)
+    return;
+
+  auto scale    = m_WindowScale;
+  m_WindowScale = newScale;
+  switch (newScale)
+  {
+  case 1:
+  case 2:
+    SetWindowSize (scale, m_WindowScale);
+    break;
+
+  default:
+    return;
+  }
 }
 
 /**
@@ -2501,6 +2538,8 @@ CEvent::DrawButtons ()
       lang = "Français";
     else if (locale == "de")
       lang = "Deutsch";
+    else if (locale == "it")
+      lang = "Italiano";
 
     lg    = GetTextWidth (lang.c_str ());
     pos.x = (54 + 40) - lg / 2;
@@ -3031,7 +3070,10 @@ CEvent::ChangePhase (Uint32 phase)
 
   // FIXME: pause is better if the game is not stop but just interrupted
   if (m_phase == EV_PHASE_PLAY && m_phase != phase)
-    m_pSound->StopAllSounds (false);
+  {
+    static const std::set<Sint32> except = {SOUND_WIN, SOUND_LOST};
+    m_pSound->StopAllSounds (false, &except);
+  }
 
   m_phase = phase; // change de phase
   m_index = index;
@@ -3246,7 +3288,7 @@ CEvent::ChangePhase (Uint32 phase)
   {
     music = m_pDecor->GetMusic ();
 
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 11; i++)
       SetState (EV_BUTTON1 + i, music == i ? 1 : 0);
   }
 
@@ -3645,6 +3687,8 @@ CEvent::GetStartLanguage ()
     return Language::fr;
   if (this->m_LangStart == "de")
     return Language::de;
+  if (this->m_LangStart == "it")
+    return Language::it;
   return Language::en;
 }
 
@@ -3678,6 +3722,9 @@ CEvent::SetLanguage (Language lang)
     break;
   case Language::de:
     slang = "de";
+    break;
+  case Language::it:
+    slang = "it";
     break;
   }
 
@@ -5266,6 +5313,9 @@ CEvent::TreatEventBase (const SDL_Event & event)
       m_pDecor->FlipOutline ();
       return true;
     case SDLK_PAUSE:
+      if (this->m_pDecor->GetSkill () >= 1)
+        return true;
+
       m_bPause = !m_bPause;
       if (m_phase == EV_PHASE_PLAY)
       {

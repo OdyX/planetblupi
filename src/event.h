@@ -81,6 +81,7 @@ enum class Language {
   en_US = 1,
   fr    = 2,
   de    = 3,
+  it    = 4,
 };
 
 class CEvent
@@ -140,6 +141,7 @@ public:
   void IntroStep ();
 
   Uint8 GetWindowScale ();
+  void  SetWindowSize (Uint8 newScale);
   void  SetUpdateVersion (const std::string & version);
 
   static void PushUserEvent (Sint32 code, void * data = nullptr);

@@ -11,8 +11,8 @@ link_directories (${CMAKE_INSTALL_PREFIX}/lib)
 
 project (planetblupi)
 set (PB_VERSION_MAJOR 1)
-set (PB_VERSION_MINOR 9)
-set (PB_VERSION_PATCH 1)
+set (PB_VERSION_MINOR 11)
+set (PB_VERSION_PATCH 0)
 set (PB_VERSION_EXTRA "")
 set (PB_PRODUCT_NAME "Planet Blupi")
 set (PB_PACKAGE_NAME "planetblupi")
@@ -36,7 +36,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" ST
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -L${CMAKE_INSTALL_PREFIX}/lib")
 endif ()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${STATIC_BUILD}")
   set (CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 endif ()
 
@@ -94,37 +94,45 @@ endif (MINGW)
 
 # Dependencies
 
-set (CMAKE_INCLUDE_PATH ${CMAKE_INSTALL_PREFIX}/include)
-set (CMAKE_LIBRARY_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+if ("${STATIC_BUILD}")
+  set (CMAKE_INCLUDE_PATH ${CMAKE_INSTALL_PREFIX}/include)
+  set (CMAKE_LIBRARY_PATH ${CMAKE_INSTALL_PREFIX}/lib)
+endif ()
+
 find_package (Intl REQUIRED)
+include_directories (${Intl_INCLUDE_DIRS})
+
 find_package (Iconv REQUIRED)
+include_directories (${Iconv_INCLUDE_DIRS})
+
+find_package (Argagg REQUIRED)
+include_directories (${Argagg_INCLUDE_DIRS})
+
+find_package (SDLKitchensink REQUIRED)
+include_directories (${SDLKitchensink_INCLUDE_DIRS})
 
 find_package (PkgConfig REQUIRED)
 pkg_search_module (SDL2 REQUIRED sdl2)
 pkg_search_module (SDL2_MIXER REQUIRED SDL2_mixer)
 pkg_search_module (SDL2_IMAGE REQUIRED SDL2_image)
 pkg_search_module (CURL REQUIRED libcurl)
-# Static dependencies for SDL_kitchensink
-pkg_search_module (PNG REQUIRED libpng)
-pkg_search_module (AVCODEC REQUIRED libavcodec)
-pkg_search_module (AVFORMAT REQUIRED libavformat)
-pkg_search_module (AVUTIL REQUIRED libavutil)
-pkg_search_module (SWSCALE REQUIRED libswscale)
-pkg_search_module (SWRESAMPLE REQUIRED libswresample)
 
-if (UNIX AND NOT APPLE)
-  pkg_search_module (ALSA REQUIRED alsa)
-  pkg_search_module (PULSE REQUIRED libpulse)
+if ("${STATIC_BUILD}")
+  pkg_search_module (PNG REQUIRED libpng)
+  # Static dependencies for SDL_kitchensink
+  pkg_search_module (AVCODEC REQUIRED libavcodec)
+  pkg_search_module (AVFORMAT REQUIRED libavformat)
+  pkg_search_module (AVUTIL REQUIRED libavutil)
+  pkg_search_module (SWSCALE REQUIRED libswscale)
+  pkg_search_module (SWRESAMPLE REQUIRED libswresample)
+
+  if (UNIX AND NOT APPLE)
+    pkg_search_module (ALSA REQUIRED alsa)
+    pkg_search_module (PULSE REQUIRED libpulse)
+  endif ()
+
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCURL_STATICLIB")
 endif ()
-
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCURL_STATICLIB")
-
-##################
-## SDL_kitchensink
-##################
-
-add_library (SDL_kitchensink STATIC IMPORTED)
-set_property (TARGET SDL_kitchensink PROPERTY IMPORTED_LOCATION ${CMAKE_INSTALL_PREFIX}/lib/libSDL_kitchensink_static.a)
 
 ###########################
 ## Main binary dependencies
@@ -132,28 +140,39 @@ set_property (TARGET SDL_kitchensink PROPERTY IMPORTED_LOCATION ${CMAKE_INSTALL_
 
 add_executable (planetblupi ${sources})
 
-set (planetblupi_DEPS
-  ${Intl_LIBRARIES}
-  ${Iconv_LIBRARIES}
-  ${SDL2_STATIC_LIBRARIES}
-  ${SDL2_MIXER_STATIC_LIBRARIES}
-  ${SDL2_IMAGE_STATIC_LIBRARIES}
-  ${CURL_STATIC_LIBRARIES}
-  SDL_kitchensink
-  ${PNG_STATIC_LIBRARIES}
-  ${AVCODEC_STATIC_LIBRARIES}
-  ${AVFORMAT_STATIC_LIBRARIES}
-  ${AVUTIL_STATIC_LIBRARIES}
-  ${SWSCALE_STATIC_LIBRARIES}
-  ${SWRESAMPLE_STATIC_LIBRARIES}
-)
-
-if (UNIX AND NOT APPLE)
-  list (APPEND planetblupi_DEPS
-    ${ALSA_STATIC_LIBRARIES}
-    ${PULSE_STATIC_LIBRARIES}
+if ("${STATIC_BUILD}")
+  set (planetblupi_DEPS
+    ${Intl_LIBRARIES}
+    ${Iconv_LIBRARIES}
+    ${SDL2_STATIC_LIBRARIES}
+    ${SDL2_MIXER_STATIC_LIBRARIES}
+    ${SDL2_IMAGE_STATIC_LIBRARIES}
+    ${CURL_STATIC_LIBRARIES}
+    ${SDLKitchensink_STATIC_LIBRARIES}
+    ${PNG_STATIC_LIBRARIES}
+    ${AVCODEC_STATIC_LIBRARIES}
+    ${AVFORMAT_STATIC_LIBRARIES}
+    ${AVUTIL_STATIC_LIBRARIES}
+    ${SWSCALE_STATIC_LIBRARIES}
+    ${SWRESAMPLE_STATIC_LIBRARIES}
   )
-  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_INSTALL_PREFIX}/lib/pulseaudio")
+
+  if (UNIX AND NOT APPLE)
+    list (APPEND planetblupi_DEPS
+      ${ALSA_STATIC_LIBRARIES}
+      ${PULSE_STATIC_LIBRARIES}
+    )
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_INSTALL_PREFIX}/lib/pulseaudio")
+  endif ()
+else ()
+  set (planetblupi_DEPS
+    ${SDL2_LIBRARIES}
+    ${SDL2_MIXER_LIBRARIES}
+    ${SDL2_IMAGE_LIBRARIES}
+    ${CURL_LIBRARIES}
+    ${SDLKitchensink_LIBRARIES}
+    pthread
+  )
 endif ()
 
 target_link_libraries (planetblupi PUBLIC ${planetblupi_DEPS})
@@ -236,7 +255,7 @@ endif ()
 ## Deploy
 #########
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND "${STATIC_BUILD}")
   # set (CPACK_STRIP_FILES TRUE)
   set (CPACK_PACKAGE_NAME ${PB_PACKAGE_NAME})
   set (CPACK_PACKAGE_VENDOR "blupi.org")
