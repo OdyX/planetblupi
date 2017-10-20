@@ -1,4 +1,3 @@
-#! /usr/bin/dh-exec --with=install
-usr/bin/planetblupi => usr/games/planetblupi
+usr/games/planetblupi
 usr/share/icons/hicolor/
 usr/share/locale/

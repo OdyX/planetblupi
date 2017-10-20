@@ -5,7 +5,6 @@ Maintainer: Debian Games Team <pkg-games-devel@lists.alioth.debian.org>
 Uploaders: Didier Raboud <odyx@debian.org> 
 Build-Depends:
  debhelper (>= 10.2.5~),
- dh-exec,
  libsdl-kitchensink-dev,
  argagg-dev,
 Standards-Version: 4.1.1
