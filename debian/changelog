@@ -1,5 +1,5 @@
-planetblupi (1.11.0-1~OdyX1) unstable; urgency=medium
+planetblupi (1.11.0-1) unstable; urgency=low
 
-  * Initial release. (Closes: #XXXXXX)
+  * Initial release. (Closes: #879214)
 
- -- Didier Raboud <odyx@debian.org>  Mon, 11 Sep 2017 10:52:12 +0200
+ -- Didier Raboud <odyx@debian.org>  Fri, 20 Oct 2017 16:57:03 +0200
