@@ -6,9 +6,12 @@ Uploaders: Didier Raboud <odyx@debian.org>
 Build-Depends:
  debhelper (>= 10.2.5~),
  dh-exec,
+ libsdl-kitchensink-dev,
  argagg-dev,
 Standards-Version: 4.1.1
 Homepage: https://blupi.org
+Vcs-Git: https://alioth.debian.org/anonscm/git/pkg-games/planetblupi.git
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-games/planetblupi.git
 
 Package: planetblupi
 Architecture: any
