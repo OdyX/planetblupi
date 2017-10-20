@@ -13,7 +13,7 @@ Build-Depends:
  libsdl-kitchensink-dev,
  argagg-dev,
 Standards-Version: 4.1.1
-Homepage: https://blupi.org
+Homepage: http://blupi.org
 Vcs-Git: https://alioth.debian.org/anonscm/git/pkg-games/planetblupi.git
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-games/planetblupi.git
 
