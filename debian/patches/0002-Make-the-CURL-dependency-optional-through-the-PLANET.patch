@@ -1,4 +1,4 @@
-From 3c3e92b86af7488f2f051bad32e840cf13bcf59a Mon Sep 17 00:00:00 2001
+From f3d75e5f26dfaceefd64674860d5e278d3065297 Mon Sep 17 00:00:00 2001
 From: Didier Raboud <odyx@debian.org>
 Date: Fri, 20 Oct 2017 16:04:46 +0200
 Subject: Make the CURL dependency optional, through the
@@ -10,7 +10,7 @@ Subject: Make the CURL dependency optional, through the
  2 files changed, 32 insertions(+), 4 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 66e8f7d..0c62d6a 100644
+index 66e8f7d..6386eb0 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -18,6 +18,8 @@ set (PB_PRODUCT_NAME "Planet Blupi")
@@ -53,20 +53,20 @@ index 66e8f7d..0c62d6a 100644
      ${SDLKitchensink_STATIC_LIBRARIES}
      ${PNG_STATIC_LIBRARIES}
      ${AVCODEC_STATIC_LIBRARIES}
-@@ -156,6 +162,13 @@ if ("${STATIC_BUILD}")
-     ${SWSCALE_STATIC_LIBRARIES}
+@@ -157,6 +163,13 @@ if ("${STATIC_BUILD}")
      ${SWRESAMPLE_STATIC_LIBRARIES}
    )
-+  
+ 
 +  if(${PLANETBLUPI_HTTP_VERSION_CHECK})
 +    set (planetblupi_DEPS
 +      ${planetblupi_DEPS}
 +      ${CURL_STATIC_LIBRARIES}
 +    )
 +  endif ()
- 
++
    if (UNIX AND NOT APPLE)
      list (APPEND planetblupi_DEPS
+       ${ALSA_STATIC_LIBRARIES}
 @@ -173,6 +186,13 @@ else ()
      ${SDLKitchensink_LIBRARIES}
      pthread
@@ -82,7 +82,7 @@ index 66e8f7d..0c62d6a 100644
  
  target_link_libraries (planetblupi PUBLIC ${planetblupi_DEPS})
 diff --git a/src/blupi.cxx b/src/blupi.cxx
-index 461fbd2..86b0260 100644
+index 461fbd2..1ad2485 100644
 --- a/src/blupi.cxx
 +++ b/src/blupi.cxx
 @@ -30,7 +30,9 @@
@@ -110,21 +110,23 @@ index 461fbd2..86b0260 100644
  
  template <typename Out>
  static void
-@@ -461,6 +465,7 @@ InitFail (const char * msg)
- static size_t
+@@ -462,6 +466,7 @@ static size_t
  updateCallback (void * ptr, size_t size, size_t nmemb, void * data)
  {
-+#ifdef USE_CURL
    size_t     realsize = size * nmemb;
++#ifdef USE_CURL
    url_data * mem      = static_cast<url_data *> (data);
  
-@@ -474,11 +479,13 @@ updateCallback (void * ptr, size_t size, size_t nmemb, void * data)
+   mem->buffer =
+@@ -472,6 +477,7 @@ updateCallback (void * ptr, size_t size, size_t nmemb, void * data)
+     mem->size += realsize;
+     mem->buffer[mem->size] = 0;
    }
++#endif
  
    return realsize;
-+#endif
  }
- 
+@@ -479,6 +485,7 @@ updateCallback (void * ptr, size_t size, size_t nmemb, void * data)
  static void
  CheckForUpdates ()
  {

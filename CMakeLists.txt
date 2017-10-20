@@ -162,7 +162,7 @@ if ("${STATIC_BUILD}")
     ${SWSCALE_STATIC_LIBRARIES}
     ${SWRESAMPLE_STATIC_LIBRARIES}
   )
-  
+
   if(${PLANETBLUPI_HTTP_VERSION_CHECK})
     set (planetblupi_DEPS
       ${planetblupi_DEPS}
