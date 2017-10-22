@@ -1,0 +1,85 @@
+From 0e6b80c841ea01e8fea35ff3307db4ee239dde29 Mon Sep 17 00:00:00 2001
+From: Mathieu Schroeter <mathieu@schroetersa.ch>
+Date: Fri, 20 Oct 2017 17:57:21 +0200
+Subject: Install a desktop file
+
+This is the following serie of commits:
+- d3986d5d4aea44e43462ef875e47add8bb0cb3f7 Add a category in the desktop file
+- a50e648d634493793a8aa8aa2e266ad890b121a6 WIP: add desktop file for standard build
+- 29ad6c30f4ff1011097abb206457c5038839a67d Fix deploy of desktop file with non-appimage builds
+
+Also use @PB_ICON@
+---
+ CMakeLists.txt                         | 19 ++++++++++++++++++-
+ resources/linux/application.desktop.in | 10 +++++-----
+ 2 files changed, 23 insertions(+), 6 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 278c4f1..d812d61 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -16,6 +16,8 @@ set (PB_VERSION_PATCH 0)
+ set (PB_VERSION_EXTRA "")
+ set (PB_PRODUCT_NAME "Planet Blupi")
+ set (PB_PACKAGE_NAME "planetblupi")
++set (PB_EXEC         "planetblupi")
++set (PB_ICON_REF     "blupi")
+ set (PB_DESCRIPTION "Planet Blupi - A delerious spell-binding game")
+ 
+ option (PB_HTTP_VERSION_CHECK "Run a version check over HTTP (with CURL)" OFF)
+@@ -34,6 +36,14 @@ if (APPIMAGE_APPRUN_PROGRAM AND APPIMAGE_ASSISTANT_PROGRAM)
+   set (USE_APPIMAGE ON)
+ endif ()
+ 
++if (NOT USE_APPIMAGE)
++  configure_file (
++    "${PROJECT_SOURCE_DIR}/resources/linux/application.desktop.in"
++    "${CMAKE_CURRENT_BINARY_DIR}/${PB_PACKAGE_NAME}.desktop"
++    @ONLY
++  )
++endif ()
++
+ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -L${CMAKE_INSTALL_PREFIX}/lib")
+ endif ()
+@@ -261,6 +271,13 @@ if (UNIX AND NOT APPLE)
+   install (DIRECTORY resources/icon/hicolor DESTINATION share/icons)
+ endif ()
+ 
++if (NOT USE_APPIMAGE)
++  install (
++    FILES ${CMAKE_CURRENT_BINARY_DIR}/${PB_PACKAGE_NAME}.desktop
++    DESTINATION share/applications
++  )
++endif ()
++
+ # Copy libwinpthread-1.dll which seems not be linkable statically
+ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND MINGW)
+   execute_process (COMMAND cygpath.exe --windows /mingw64 OUTPUT_VARIABLE MINGW64_PATH)
+@@ -288,7 +305,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND "${STATIC_BUILD}")
+   if (USE_APPIMAGE)
+     include (LinuxAppImageBuild)
+     set (CMAKE_PACKAGED_OUTPUT_PREFIX ${CMAKE_INSTALL_PREFIX})
+-    APPIMAGE_PACKAGE (planetblupi ${PB_PACKAGE_NAME} ${PB_PRODUCT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/resources/linux" "${CMAKE_BINARY_DIR}/share" "" "" "blupi")
++    APPIMAGE_PACKAGE (planetblupi ${PB_PACKAGE_NAME} ${PB_PRODUCT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/resources/linux" "${CMAKE_BINARY_DIR}/share" "" "" ${PB_ICON_REF})
+   elseif (MINGW)
+     set (INSTALLER_FILE_NAME "${PB_PACKAGE_NAME}-${PB_VERSION_MAJOR}.${PB_VERSION_MINOR}.${PB_VERSION_PATCH}${PB_VERSION_EXTRA}")
+     set (CPACK_PACKAGE_FILE_NAME "${INSTALLER_FILE_NAME}")
+diff --git a/resources/linux/application.desktop.in b/resources/linux/application.desktop.in
+index 038b99c..db29df3 100644
+--- a/resources/linux/application.desktop.in
++++ b/resources/linux/application.desktop.in
+@@ -3,8 +3,8 @@ Version=1.0
+ Type=Application
+ Name=@PB_PRODUCT_NAME@
+ GenericName=Video Game
+-Comment=@CPACK_PACKAGE_DESCRIPTION_SUMMARY@
+-Exec=@APPIMAGE_EXEC@
+-StartupWMClass=@APPIMAGE_EXEC_WM@
+-Icon=@APPIMAGE_ICON_REF@
+-Categories=Game;
++Comment=@PB_DESCRIPTION@
++Exec=@PB_EXEC@
++StartupWMClass=@PB_EXEC@
++Icon=@PB_ICON_REF@
++Categories=Game;StrategyGame;
