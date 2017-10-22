@@ -1,4 +1,4 @@
-From 0e6b80c841ea01e8fea35ff3307db4ee239dde29 Mon Sep 17 00:00:00 2001
+From 38f7702189b39c6dc4cad59ad6ef154c8cdcb58c Mon Sep 17 00:00:00 2001
 From: Mathieu Schroeter <mathieu@schroetersa.ch>
 Date: Fri, 20 Oct 2017 17:57:21 +0200
 Subject: Install a desktop file
@@ -15,10 +15,10 @@ Also use @PB_ICON@
  2 files changed, 23 insertions(+), 6 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 278c4f1..d812d61 100644
+index 40d6c85..ab0bca6 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -16,6 +16,8 @@ set (PB_VERSION_PATCH 0)
+@@ -17,6 +17,8 @@ set (PB_VERSION_PATCH 0)
  set (PB_VERSION_EXTRA "")
  set (PB_PRODUCT_NAME "Planet Blupi")
  set (PB_PACKAGE_NAME "planetblupi")
@@ -27,7 +27,7 @@ index 278c4f1..d812d61 100644
  set (PB_DESCRIPTION "Planet Blupi - A delerious spell-binding game")
  
  option (PB_HTTP_VERSION_CHECK "Run a version check over HTTP (with CURL)" OFF)
-@@ -34,6 +36,14 @@ if (APPIMAGE_APPRUN_PROGRAM AND APPIMAGE_ASSISTANT_PROGRAM)
+@@ -35,6 +37,14 @@ if (APPIMAGE_APPRUN_PROGRAM AND APPIMAGE_ASSISTANT_PROGRAM)
    set (USE_APPIMAGE ON)
  endif ()
  
@@ -42,7 +42,7 @@ index 278c4f1..d812d61 100644
  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -L${CMAKE_INSTALL_PREFIX}/lib")
  endif ()
-@@ -261,6 +271,13 @@ if (UNIX AND NOT APPLE)
+@@ -262,6 +272,13 @@ if (UNIX AND NOT APPLE)
    install (DIRECTORY resources/icon/hicolor DESTINATION share/icons)
  endif ()
  
@@ -56,7 +56,7 @@ index 278c4f1..d812d61 100644
  # Copy libwinpthread-1.dll which seems not be linkable statically
  if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND MINGW)
    execute_process (COMMAND cygpath.exe --windows /mingw64 OUTPUT_VARIABLE MINGW64_PATH)
-@@ -288,7 +305,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND "${STATIC_BUILD}")
+@@ -289,7 +306,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND "${STATIC_BUILD}")
    if (USE_APPIMAGE)
      include (LinuxAppImageBuild)
      set (CMAKE_PACKAGED_OUTPUT_PREFIX ${CMAKE_INSTALL_PREFIX})
