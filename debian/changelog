@@ -1,3 +1,16 @@
+planetblupi (1.11.0-2) unstable; urgency=medium
+
+  * Backport two patch series from upstream:
+    - Build a desktop file
+    - Make the CURL dependency optional, through the PB_HTTP_VERSION_CHECK
+      CMake option (refresh the previous attempt)
+
+  * Use non-HTTPS homepage, the HTTPS version doesn't work
+  * Install the desktop file
+  * Add debian/gbp.conf
+
+ -- Didier Raboud <odyx@debian.org>  Sun, 22 Oct 2017 11:54:10 +0200
+
 planetblupi (1.11.0-1) unstable; urgency=low
 
   * Initial release. (Closes: #879214)
