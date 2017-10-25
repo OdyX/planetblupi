@@ -1,3 +1,4 @@
 0001-Use-GNUInstallDirs-to-let-the-BINDIR-be-overriden-by.patch
 0002-Make-the-CURL-dependency-optional-through-the-PB_HTT.patch
 0003-Install-a-desktop-file.patch
+0004-Replace-a-char-by-Sint8.patch

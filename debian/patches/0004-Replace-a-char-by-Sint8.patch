@@ -1,0 +1,23 @@
+From 854dea4aa90bce52fa6ab356042778dee5a20617 Mon Sep 17 00:00:00 2001
+From: Mathieu Schroeter <mathieu@schroetersa.ch>
+Date: Wed, 25 Oct 2017 06:40:39 +0200
+Subject: Replace a char by Sint8
+
+It should fix build on some arch like arm and ppc.
+---
+ src/fog.cxx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/fog.cxx b/src/fog.cxx
+index f4d3ba2..8e6dd2f 100644
+--- a/src/fog.cxx
++++ b/src/fog.cxx
+@@ -87,7 +87,7 @@ GetFogIcon (char * pBits)
+ // Table donnant la "vision" d'un blupi dans le
+ // brouillard.
+ // clang-format off
+-static char table_fog[17 * 17] =
++static Sint8 table_fog[17 * 17] =
+ {
+   4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+   4,  4,  4,  4,  4,  4,  4,  2,  4,  4,  4,  4,  4,  4,  4,  4,  4,
