@@ -1,3 +1,13 @@
+planetblupi (1.11.0-3) unstable; urgency=medium
+
+  * Patches:
+    - Install a .desktop file: backport and enhance
+    - Make the CURL dependency optional: backport the enhancements
+    - Use GNUInstallDirs instead of patching the BINDIR: patch update
+    - Replace a char by Sint8: backport. Should fix the FTBFS'es
+
+ -- Didier Raboud <odyx@debian.org>  Wed, 25 Oct 2017 09:11:15 +0200
+
 planetblupi (1.11.0-2) unstable; urgency=medium
 
   * Backport two patch series from upstream:
